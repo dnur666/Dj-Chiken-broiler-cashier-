@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14532d">
+  <title>Kasir Ayam Broiler</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f5f1;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      max-width: 450px;
+      margin: auto;
+    }
+    input, select, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: #14532d;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+    #hasil {
+      font-size: 24px;
+      font-weight: bold;
+      color: #14532d;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🐔 Kasir Ayam Broiler</h2>
+
+    <label>Jenis ayam</label>
+    <select id="jenis">
+      <option>Ayam utuh</option>
+      <option>Dada</option>
+      <option>Paha</option>
+      <option>Sayap</option>
+      <option>Ceker</option>
+    </select>
+
+    <label>Berat bersih (gram)</label>
+    <input id="berat" type="number" min="1" value="750">
+
+    <label>Harga per kilogram (Rp)</label>
+    <input id="harga" type="number" min="0" value="38000">
+
+    <button onclick="hitung()">Hitung Harga</button>
+
+    <p id="hasil">Rp28.500</p>
+    <p id="rincian">750 gram × Rp38.000/kg</p>
+  </div>
+
+  <script>
+    function hitung() {
+      const jenis = document.getElementById('jenis').value;
+      const berat = Number(document.getElementById('berat').value);
+      const harga = Number(document.getElementById('harga').value);
+
+      if (berat <= 0 || harga < 0) {
+        alert('Masukkan berat dan harga yang benar.');
+        return;
+      }
+
+      const total = Math.round(berat / 1000 * harga);
+
+      document.getElementById('hasil').textContent =
+        'Rp' + total.toLocaleString('id-ID');
+
+      document.getElementById('rincian').textContent =
+        jenis + ': ' + berat.toLocaleString('id-ID') +
+        ' gram × Rp' + harga.toLocaleString('id-ID') + '/kg';
+    }
+  </script>
+</body>
+</html>
