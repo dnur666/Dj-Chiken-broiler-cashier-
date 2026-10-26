@@ -1,0 +1,6 @@
+{
+  "appId": "com.kasirayam.broiler",
+  "appName": "Kasir Ayam Broiler",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
