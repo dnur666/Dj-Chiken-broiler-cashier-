@@ -1,91 +1,392 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#14532d">
-  <title>Kasir Ayam Broiler</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f5f1;
-      margin: 0;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 14px;
-      max-width: 450px;
-      margin: auto;
-    }
-    input, select, button {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    button {
-      background: #14532d;
-      color: white;
-      border: none;
-      font-weight: bold;
-    }
-    #hasil {
-      font-size: 24px;
-      font-weight: bold;
-      color: #14532d;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14532d">
+<title>POS Ayam Broiler</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f2;font:15px Arial,sans-serif;color:#17251b}
+header{background:#14532d;color:white;padding:18px}
+header h2{margin:0 0 6px}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:10px;background:#fff;position:sticky;top:0}
+button{border:0;border-radius:8px;padding:11px;background:#14532d;color:white;font-weight:bold;cursor:pointer}
+nav button{font-size:13px}
+main{padding:12px;max-width:700px;margin:auto}
+.card{background:white;border-radius:12px;padding:15px;margin-bottom:12px;box-shadow:0 2px 7px #0000000c}
+h3{margin-top:0}
+label{display:block;font-size:13px;margin:10px 0 5px}
+input,select{width:100%;padding:11px;border:1px solid #ccd5ce;border-radius:8px;font-size:16px;background:white}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big{font-size:25px;font-weight:bold;color:#14532d}
+.small{font-size:12px;color:#5b665e}
+.item{border-bottom:1px solid #e4e9e5;padding:10px 0}
+.item:last-child{border:0}
+.danger{background:#a12626}
+.secondary{background:#53645a}
+button:disabled{opacity:.5}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{text-align:left;padding:8px;border-bottom:1px solid #e3e8e4}
+td:last-child,th:last-child{text-align:right}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1}
+</style>
 </head>
 <body>
+<header>
+  <h2>🐔 POS Ayam Broiler</h2>
+  <div class="small" style="color:#e2f3e7">Kasir • Stok • Laporan • Offline</div>
+</header>
+
+<nav>
+  <button onclick="showPage('kasir')">Kasir</button>
+  <button onclick="showPage('stok')">Stok & Harga</button>
+  <button onclick="showPage('laporan')">Laporan</button>
+  <button onclick="showPage('utang')">Utang</button>
+  <button onclick="showPage('data')">Data & Backup</button>
+</nav>
+
+<main>
+<section id="kasir">
   <div class="card">
-    <h2>🐔 Kasir Ayam Broiler</h2>
-
-    <label>Jenis ayam</label>
-    <select id="jenis">
-      <option>Ayam utuh</option>
-      <option>Dada</option>
-      <option>Paha</option>
-      <option>Sayap</option>
-      <option>Ceker</option>
-    </select>
-
-    <label>Berat bersih (gram)</label>
-    <input id="berat" type="number" min="1" value="750">
-
-    <label>Harga per kilogram (Rp)</label>
-    <input id="harga" type="number" min="0" value="38000">
-
-    <button onclick="hitung()">Hitung Harga</button>
-
-    <p id="hasil">Rp28.500</p>
-    <p id="rincian">750 gram × Rp38.000/kg</p>
+    <h3>Transaksi Baru</h3>
+    <label>Nama pelanggan (opsional)</label>
+    <input id="pelanggan" placeholder="Nama pelanggan">
+    <label>Produk ayam</label>
+    <select id="produk" onchange="updateInfo()"></select>
+    <div id="infoStok" class="small"></div>
+    <div class="row">
+      <div>
+        <label>Berat (gram)</label>
+        <input id="berat" type="number" min="1" value="1000">
+      </div>
+      <div>
+        <label>Harga jual (Rp/kg)</label>
+        <input id="hargaJual" type="number" min="0">
+      </div>
+    </div>
+    <button onclick="tambahKeranjang()">Tambah ke keranjang</button>
   </div>
 
-  <script>
-    function hitung() {
-      const jenis = document.getElementById('jenis').value;
-      const berat = Number(document.getElementById('berat').value);
-      const harga = Number(document.getElementById('harga').value);
+  <div class="card">
+    <h3>Keranjang</h3>
+    <div id="keranjang"></div>
+    <div class="item">Total: <span class="big" id="total">Rp0</span></div>
+    <label>Pembayaran</label>
+    <select id="metode">
+      <option value="lunas">Lunas / tunai</option>
+      <option value="utang">Utang pelanggan</option>
+    </select>
+    <button onclick="simpanTransaksi()">Simpan Transaksi</button>
+    <button class="secondary" onclick="kosongkanKeranjang()">Kosongkan Keranjang</button>
+  </div>
+  <div class="card" id="struk" style="display:none"></div>
+</section>
 
-      if (berat <= 0 || harga < 0) {
-        alert('Masukkan berat dan harga yang benar.');
-        return;
+<section id="stok" class="hidden">
+  <div class="card">
+    <h3>Stok & Harga Produk</h3>
+    <label>Pilih produk</label>
+    <select id="editProduk" onchange="muatProdukEdit()"></select>
+    <div class="row">
+      <div>
+        <label>Stok siap jual (gram)</label>
+        <input id="editStok" type="number" min="0">
+      </div>
+      <div>
+        <label>HPP/modal (Rp/kg)</label>
+        <input id="editHpp" type="number" min="0">
+      </div>
+    </div>
+    <label>Harga jual (Rp/kg)</label>
+    <input id="editHarga" type="number" min="0">
+    <button onclick="simpanProduk()">Simpan Perubahan</button>
+  </div>
+  <div class="card">
+    <h3>Ringkasan Stok</h3>
+    <div id="daftarStok"></div>
+  </div>
+</section>
+
+<section id="laporan" class="hidden">
+  <div class="card">
+    <h3>Laporan Penjualan</h3>
+    <div id="ringkasan"></div>
+    <h3>Riwayat Transaksi</h3>
+    <div id="riwayat"></div>
+  </div>
+</section>
+
+<section id="utang" class="hidden">
+  <div class="card">
+    <h3>Utang Pelanggan</h3>
+    <div id="daftarUtang"></div>
+  </div>
+</section>
+
+<section id="data" class="hidden">
+  <div class="card">
+    <h3>Cadangan Data</h3>
+    <p class="small">Simpan cadangan secara berkala. Jangan menghapus data aplikasi sebelum memastikan cadangan sudah tersimpan.</p>
+    <button onclick="backupData()">Buat / Unduh Backup</button>
+    <label>Atau salin data cadangan</label>
+    <textarea id="backupText" style="width:100%;height:120px" placeholder="Data cadangan akan muncul di sini"></textarea>
+    <button class="secondary" onclick="salinBackup()">Salin Teks Backup</button>
+    <label>Pulihkan dari file JSON</label>
+    <input id="fileBackup" type="file" accept=".json,application/json">
+    <button onclick="pulihkanBackup()">Pulihkan Data</button>
+    <p class="small">Pemulihan mengganti data saat ini. Pastikan data lama sudah dicadangkan.</p>
+  </div>
+  <div class="card">
+    <h3>Informasi</h3>
+    <p>Data transaksi tersimpan di perangkat ini. Versi ini belum menyinkronkan data ke perangkat lain.</p>
+    <button class="danger" onclick="resetData()">Hapus Semua Data</button>
+  </div>
+</section>
+</main>
+
+<script>
+const KEY = 'pos_ayam_broiler_v1';
+const awal = {
+  products: [
+    {id:1,name:'Ayam utuh',stock:20000,hpp:30000,price:38000},
+    {id:2,name:'Dada',stock:5000,hpp:32000,price:42000},
+    {id:3,name:'Paha',stock:5000,hpp:32000,price:42000},
+    {id:4,name:'Sayap',stock:3000,hpp:28000,price:36000},
+    {id:5,name:'Ceker',stock:2000,hpp:18000,price:25000}
+  ],
+  sales: [],
+  nextId: 1
+};
+let db = loadDB();
+let cart = [];
+
+function loadDB(){
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if(d && Array.isArray(d.products) && Array.isArray(d.sales)) return d;
+  } catch(e){}
+  return JSON.parse(JSON.stringify(awal));
+}
+function saveDB(){
+  localStorage.setItem(KEY, JSON.stringify(db));
+}
+function rupiah(n){
+  return 'Rp' + Math.round(Number(n)||0).toLocaleString('id-ID');
+}
+function angka(n){
+  return (Number(n)||0).toLocaleString('id-ID');
+}
+function el(id){return document.getElementById(id);}
+function showPage(page){
+  ['kasir','stok','laporan','utang','data'].forEach(p=>{
+    el(p).classList.toggle('hidden',p!==page);
+  });
+  renderAll();
+}
+function isiPilihan(){
+  ['produk','editProduk'].forEach(id=>{
+    const old=el(id).value;
+    el(id).innerHTML=db.products.map(p=>
+      `<option value="${p.id}">${p.name}</option>`).join('');
+    if(db.products.some(p=>String(p.id)===old)) el(id).value=old;
+  });
+  updateInfo();
+}
+function produkAktif(){
+  return db.products.find(p=>p.id===Number(el('produk').value)) || db.products[0];
+}
+function updateInfo(){
+  const p=produkAktif();
+  if(!p)return;
+  el('infoStok').textContent='Stok tersedia: '+angka(p.stock)+' gram';
+  el('hargaJual').value=p.price;
+}
+function tambahKeranjang(){
+  const p=produkAktif();
+  const berat=Number(el('berat').value);
+  const harga=Number(el('hargaJual').value);
+  if(!p || berat<=0 || harga<0){alert('Periksa berat dan harga.');return;}
+  const diKeranjang=cart.filter(x=>x.id===p.id).reduce((s,x)=>s+x.gram,0);
+  if(berat+diKeranjang>p.stock){
+    alert('Stok tidak mencukupi. Stok tersedia: '+angka(p.stock)+' gram.');
+    return;
+  }
+  cart.push({id:p.id,name:p.name,gram:berat,price:harga,hpp:p.hpp});
+  renderCart();
+}
+function renderCart(){
+  let total=0;
+  el('keranjang').innerHTML=cart.length?cart.map((x,i)=>{
+    const sub=Math.round(x.gram/1000*x.price); total+=sub;
+    return `<div class="item">${x.name}<br>${angka(x.gram)} gram × ${rupiah(x.price)}/kg
+    <br><b>${rupiah(sub)}</b>
+    <button class="danger" onclick="hapusItem(${i})">Hapus</button></div>`;
+  }).join(''):'Keranjang masih kosong.';
+  el('total').textContent=rupiah(total);
+}
+function hapusItem(i){cart.splice(i,1);renderCart();}
+function kosongkanKeranjang(){cart=[];renderCart();}
+function simpanTransaksi(){
+  if(!cart.length){alert('Keranjang masih kosong.');return;}
+  const total=cart.reduce((s,x)=>s+Math.round(x.gram/1000*x.price),0);
+  const metode=el('metode').value;
+  const pelanggan=el('pelanggan').value.trim();
+  if(metode==='utang'&&!pelanggan){
+    alert('Isi nama pelanggan untuk transaksi utang.');return;
+  }
+  for(const x of cart){
+    const p=db.products.find(p=>p.id===x.id);
+    if(!p||p.stock<x.gram){alert('Stok berubah atau tidak cukup. Periksa kembali.');return;}
+  }
+  const sale={
+    id:db.nextId++,
+    date:new Date().toISOString(),
+    customer:pelanggan||'Pelanggan umum',
+    items:cart.map(x=>({...x})),
+    total,
+    cost:cart.reduce((s,x)=>s+Math.round(x.gram/1000*x.hpp),0),
+    payment:metode,
+    paid:metode==='lunas'?total:0
+  };
+  sale.profit=sale.total-sale.cost;
+  sale.items.forEach(x=>{
+    db.products.find(p=>p.id===x.id).stock-=x.gram;
+  });
+  db.sales.unshift(sale);
+  saveDB();
+  cart=[];
+  el('pelanggan').value='';
+  renderCart();
+  renderAll();
+  tampilStruk(sale);
+  alert('Transaksi berhasil disimpan.');
+}
+function tanggal(date){
+  return new Date(date).toLocaleString('id-ID');
+}
+function tampilStruk(s){
+  el('struk').style.display='block';
+  el('struk').innerHTML=`
+    <h3>STRUK AYAM BROILER</h3>
+    <div class="small">${tanggal(s.date)}<br>No. transaksi: ${s.id}<br>Pelanggan: ${s.customer}</div>
+    ${s.items.map(x=>`<div class="item">${x.name} — ${angka(x.gram)} gram<br>${rupiah(Math.round(x.gram/1000*x.price))}</div>`).join('')}
+    <h3>Total: ${rupiah(s.total)}</h3>
+    <p>Status: ${s.payment==='lunas'?'LUNAS':'UTANG'}<br>Terima kasih.</p>
+    <button onclick="cetakStruk(${s.id})">Cetak / Simpan PDF</button>`;
+}
+function cetakStruk(id){
+  const s=db.sales.find(x=>x.id===id);if(!s)return;
+  const w=window.open('','_blank');
+  if(!w){alert('Pop-up diblokir. Izinkan pop-up atau gunakan tangkapan layar struk.');return;}
+  w.document.write(`<html><head><title>Struk</title><meta name="viewport" content="width=device-width"></head><body style="font:14px Arial;max-width:320px;margin:20px auto">
+  <h2>POS AYAM BROILER</h2><p>${tanggal(s.date)}<br>Transaksi #${s.id}<br>${s.customer}</p><hr>
+  ${s.items.map(x=>`<p>${x.name}<br>${angka(x.gram)} gram — ${rupiah(Math.round(x.gram/1000*x.price))}</p>`).join('')}
+  <hr><h3>Total ${rupiah(s.total)}</h3><p>Status: ${s.payment==='lunas'?'LUNAS':'UTANG'}</p><p>Terima kasih</p>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+function muatProdukEdit(){
+  const p=db.products.find(p=>p.id===Number(el('editProduk').value));
+  if(!p)return;
+  el('editStok').value=p.stock;el('editHpp').value=p.hpp;el('editHarga').value=p.price;
+}
+function simpanProduk(){
+  const p=db.products.find(p=>p.id===Number(el('editProduk').value));
+  const stock=Number(el('editStok').value);
+  const hpp=Number(el('editHpp').value);
+  const price=Number(el('editHarga').value);
+  if(!p||stock<0||hpp<0||price<0){alert('Masukkan angka yang benar.');return;}
+  p.stock=Math.round(stock);p.hpp=Math.round(hpp);p.price=Math.round(price);
+  saveDB();renderAll();alert('Stok dan harga berhasil disimpan.');
+}
+function renderStok(){
+  el('daftarStok').innerHTML=db.products.map(p=>
+    `<div class="item"><b>${p.name}</b><br>Stok: ${angka(p.stock)} gram
+    <br>HPP: ${rupiah(p.hpp)}/kg<br>Jual: ${rupiah(p.price)}/kg</div>`).join('');
+}
+function renderLaporan(){
+  const omzet=db.sales.reduce((s,x)=>s+x.total,0);
+  const modal=db.sales.reduce((s,x)=>s+x.cost,0);
+  const piutang=db.sales.reduce((s,x)=>s+(x.total-(x.paid||0)),0);
+  el('ringkasan').innerHTML=`
+    <div class="item">Jumlah transaksi: <b>${db.sales.length}</b></div>
+    <div class="item">Total penjualan: <b>${rupiah(omzet)}</b></div>
+    <div class="item">Estimasi modal/HPP terjual: <b>${rupiah(modal)}</b></div>
+    <div class="item">Estimasi laba kotor: <b>${rupiah(omzet-modal)}</b></div>
+    <div class="item">Piutang belum dibayar: <b>${rupiah(piutang)}</b></div>
+    <p class="small">Laporan seluruh transaksi tersimpan. Laba kotor belum menghitung biaya operasional lain.</p>`;
+  el('riwayat').innerHTML=db.sales.length?db.sales.map(s=>
+    `<div class="item"><b>#${s.id} — ${s.customer}</b><br>${tanggal(s.date)}
+    <br>${rupiah(s.total)} · ${s.payment==='lunas'?'Lunas':'Utang / belum lunas'}
+    <br><button class="secondary" onclick="tampilStruk(db.sales.find(x=>x.id===${s.id}))">Lihat struk</button></div>`).join(''):'Belum ada transaksi.';
+}
+function renderUtang(){
+  const arr=db.sales.filter(s=>(s.total-(s.paid||0))>0);
+  el('daftarUtang').innerHTML=arr.length?arr.map(s=>{
+    const sisa=s.total-(s.paid||0);
+    return `<div class="item"><b>${s.customer}</b><br>Transaksi #${s.id} · ${tanggal(s.date)}
+    <br>Total: ${rupiah(s.total)}<br>Sudah dibayar: ${rupiah(s.paid||0)}
+    <br>Sisa utang: <b>${rupiah(sisa)}</b>
+    <button onclick="bayarUtang(${s.id})">Tandai lunas</button></div>`;
+  }).join(''):'Tidak ada utang pelanggan.';
+}
+function bayarUtang(id){
+  const s=db.sales.find(x=>x.id===id);if(!s)return;
+  if(confirm('Tandai utang '+s.customer+' sebesar '+rupiah(s.total-(s.paid||0))+' sebagai lunas?')){
+    s.paid=s.total;s.payment='lunas';saveDB();renderAll();
+  }
+}
+function renderAll(){
+  isiPilihan();muatProdukEdit();renderStok();renderLaporan();renderUtang();
+}
+function backupData(){
+  const txt=JSON.stringify(db,null,2);
+  el('backupText').value=txt;
+  const blob=new Blob([txt],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download='backup-pos-ayam-broiler.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+async function salinBackup(){
+  if(!el('backupText').value)backupData();
+  try{
+    await navigator.clipboard.writeText(el('backupText').value);
+    alert('Data cadangan disalin.');
+  }catch(e){
+    el('backupText').focus();el('backupText').select();
+    alert('Pilih dan salin teks cadangan secara manual.');
+  }
+}
+function pulihkanBackup(){
+  const f=el('fileBackup').files[0];
+  if(!f){alert('Pilih file JSON cadangan dahulu.');return;}
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!Array.isArray(d.products)||!Array.isArray(d.sales)||!Number.isFinite(d.nextId)){
+        throw new Error('Format tidak cocok');
       }
-
-      const total = Math.round(berat / 1000 * harga);
-
-      document.getElementById('hasil').textContent =
-        'Rp' + total.toLocaleString('id-ID');
-
-      document.getElementById('rincian').textContent =
-        jenis + ': ' + berat.toLocaleString('id-ID') +
-        ' gram × Rp' + harga.toLocaleString('id-ID') + '/kg';
+      if(!confirm('Pulihkan cadangan dan ganti data saat ini?'))return;
+      db=d;saveDB();cart=[];renderCart();renderAll();
+      alert('Cadangan berhasil dipulihkan.');
+    }catch(e){alert('File cadangan tidak valid.');}
+  };
+  r.readAsText(f);
+}
+function resetData(){
+  if(confirm('Hapus semua transaksi dan kembalikan stok ke data awal?')){
+    if(confirm('Pastikan cadangan sudah dibuat. Lanjut hapus data?')){
+      db=JSON.parse(JSON.stringify(awal));cart=[];saveDB();renderCart();renderAll();
+      alert('Data direset.');
     }
-  </script>
+  }
+}
+isiPilihan();renderCart();renderAll();
+</script>
 </body>
 </html>
